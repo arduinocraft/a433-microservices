@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  item-db:
+    image: mongo:3 # Template (image) MongoDB versi 3 di dapat dari registry publik Docker CR 
+    container_name: item-db # Penanda nama kontainer MongoDB
+    volumes:
+      - ./app-db:/data/db # Membuat link directory dari host ke container
+    networks:
+      - item-network # Sambungkan ke jaringan virtual "item-network"
+    restart: always # Selalu restart meskipun dihentikan atau berhenti dengan sendirinya
+
+  item-app:
+    image: ghcr.io/arduinocraft/a433-microservices:item-app:v1 # Template (image) yang dibangun secara manual dengan Dockerfile dan didapat dari unggahan (push) ke GHCR
+    container_name: item-app # Penanda nama kontainer aplikasi Node
+    ports:
+      - "80:8080"  # Mem forward traffic dari port container 8080 ke host 80
+    depends_on:
+      - item-db # depends_on memastikan MongoDB di deploy terlebih dahulu sebelum aplikasi Node
+    networks:
+      - item-network # Sambungkan ke jaringan virtual "item-network"
+    restart: always # Selalu restart meskipun dihentikan atau berhenti dengan sendirinya
+
+networks:
+  item-network:
+    driver: bridge
+
